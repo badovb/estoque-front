@@ -1,16 +1,5 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import {
-  Container,
-  TextField,
-  Button,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper
-} from "@mui/material";
 
 function App() {
   const [produtos, setProdutos] = useState([]);
