@@ -20,7 +20,7 @@ function App() {
   const [editandoId, setEditandoId] = useState(null);
 
   const carregarProdutos = () => {
-    fetch("http://localhost:8080/produtos")
+    fetch("https://controle-estoque-api-esnm.onrender.com/produtos")
       .then(res => res.json())
       .then(data => setProdutos(data));
   };
@@ -30,7 +30,7 @@ function App() {
   }, []);
 
   const salvar = () => {
-    fetch("http://localhost:8080/produtos", {
+    fetch("https://controle-estoque-api-esnm.onrender.com/produtos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nome, quantidade, preco })
@@ -41,7 +41,7 @@ function App() {
   };
 
   const deletar = (id) => {
-    fetch(`http://localhost:8080/produtos/${id}`, {
+    fetch(`https://controle-estoque-api-esnm.onrender.com/produtos/${id}`, {
       method: "DELETE"
     }).then(() => carregarProdutos());
   };
@@ -54,7 +54,7 @@ function App() {
   };
 
   const atualizar = () => {
-    fetch(`http://localhost:8080/produtos/${editandoId}`, {
+    fetch(`https://controle-estoque-api-esnm.onrender.com/produtos/${editandoId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nome, quantidade, preco })
@@ -71,67 +71,51 @@ function App() {
     setEditandoId(null);
   };
 
- return (
-  <Container>
+  return (
+  <div className="container">
     <h1>Controle de Estoque</h1>
 
-    <Paper style={{ padding: 20, marginBottom: 20 }}>
-      <h2>{editandoId ? "Editar Produto" : "Cadastrar Produto"}</h2>
+    <div className="form">
+      <input placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} />
+      <input placeholder="Quantidade" value={quantidade} onChange={e => setQuantidade(e.target.value)} />
+      <input placeholder="Preço" value={preco} onChange={e => setPreco(e.target.value)} />
 
-      <div style={{ display: "flex", gap: 10 }}>
-        <TextField label="Nome" value={nome} onChange={e => setNome(e.target.value)} />
-        <TextField label="Quantidade" value={quantidade} onChange={e => setQuantidade(e.target.value)} />
-        <TextField label="Preço" value={preco} onChange={e => setPreco(e.target.value)} />
+      {editandoId ? (
+        <button className="btn-atualizar" onClick={atualizar}>Atualizar</button>
+      ) : (
+        <button className="btn-salvar" onClick={salvar}>Salvar</button>
+      )}
 
-        {editandoId ? (
-          <Button variant="contained" color="warning" onClick={atualizar}>
-            Atualizar
-          </Button>
-        ) : (
-          <Button variant="contained" color="success" onClick={salvar}>
-            Salvar
-          </Button>
-        )}
+      <button onClick={limpar}>Cancelar</button>
+    </div>
 
-        <Button variant="outlined" onClick={limpar}>
-          Cancelar
-        </Button>
-      </div>
-    </Paper>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Quantidade</th>
+          <th>Preço</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
 
-    <Paper>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell>Nome</TableCell>
-            <TableCell>Quantidade</TableCell>
-            <TableCell>Preço</TableCell>
-            <TableCell>Ações</TableCell>
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {produtos.map(p => (
-            <TableRow key={p.id}>
-              <TableCell>{p.id}</TableCell>
-              <TableCell>{p.nome}</TableCell>
-              <TableCell>{p.quantidade}</TableCell>
-              <TableCell>{p.preco}</TableCell>
-              <TableCell>
-                <Button color="primary" onClick={() => prepararEdicao(p)}>
-                  Editar
-                </Button>
-                <Button color="error" onClick={() => deletar(p.id)}>
-                  Excluir
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Paper>
-  </Container>
+      <tbody>
+        {produtos.map(p => (
+          <tr key={p.id}>
+            <td>{p.id}</td>
+            <td>{p.nome}</td>
+            <td>{p.quantidade}</td>
+            <td>{p.preco}</td>
+            <td>
+              <button className="btn-editar" onClick={() => prepararEdicao(p)}>Editar</button>
+              <button className="btn-deletar" onClick={() => deletar(p.id)}>Excluir</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
 );
 }
 
