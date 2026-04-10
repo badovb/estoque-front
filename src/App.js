@@ -12,70 +12,105 @@ function App() {
   const [editandoId, setEditandoId] = useState(null);
   const [busca, setBusca] = useState("");
   const [logado, setLogado] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
 
   // =========================
   // LISTAR
   // =========================
-  const carregarProdutos = () => {
-    fetch(`${API}/produtos`)
-      .then(res => {
-        if (!res.ok) throw new Error("Erro ao carregar produtos");
-        return res.json();
-      })
-      .then(data => setProdutos(data))
-      .catch(() => alert("Erro ao buscar produtos"));
+  const carregarProdutos = async () => {
+    try {
+      setLoading(true);
+      setErro("");
+
+      const res = await fetch(`${API}/produtos`);
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+      setProdutos(data);
+    } catch {
+      setErro("Erro ao carregar produtos");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    carregarProdutos();
-  }, []);
+    if (logado) {
+      carregarProdutos();
+    }
+  }, [logado]);
 
   // =========================
   // BUSCAR
   // =========================
-  const buscarProdutos = () => {
-    if (!busca) {
-      carregarProdutos();
-      return;
-    }
+  const buscarProdutos = async () => {
+    try {
+      setLoading(true);
+      setErro("");
 
-    fetch(`${API}/produtos/buscar?nome=${busca}`)
-      .then(res => res.json())
-      .then(data => setProdutos(data))
-      .catch(() => alert("Erro na busca"));
+      if (!busca) {
+        carregarProdutos();
+        return;
+      }
+
+      const res = await fetch(`${API}/produtos/buscar?nome=${busca}`);
+      const data = await res.json();
+      setProdutos(data);
+    } catch {
+      setErro("Erro na busca");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // =========================
-  // SALVAR
+  // SALVAR / ATUALIZAR
   // =========================
-  const salvar = () => {
-    fetch(`${API}/produtos`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        nome,
-        quantidade: Number(quantidade),
-        preco: Number(preco)
-      })
-    })
-      .then(() => {
-        limpar();
-        carregarProdutos();
-      })
-      .catch(() => alert("Erro ao salvar"));
+  const salvarOuAtualizar = async () => {
+    if (!nome || !quantidade || !preco) {
+      setErro("Preencha todos os campos");
+      return;
+    }
+
+    try {
+      setErro("");
+
+      const metodo = editandoId ? "PUT" : "POST";
+      const url = editandoId
+        ? `${API}/produtos/${editandoId}`
+        : `${API}/produtos`;
+
+      await fetch(url, {
+        method: metodo,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome,
+          quantidade: Number(quantidade),
+          preco: Number(preco)
+        })
+      });
+
+      limpar();
+      carregarProdutos();
+    } catch {
+      setErro("Erro ao salvar");
+    }
   };
 
   // =========================
   // DELETE
   // =========================
-  const deletar = (id) => {
-    fetch(`${API}/produtos/${id}`, {
-      method: "DELETE"
-    })
-      .then(() => carregarProdutos())
-      .catch(() => alert("Erro ao deletar"));
+  const deletar = async (id) => {
+    try {
+      await fetch(`${API}/produtos/${id}`, {
+        method: "DELETE"
+      });
+
+      carregarProdutos();
+    } catch {
+      setErro("Erro ao deletar");
+    }
   };
 
   // =========================
@@ -88,31 +123,6 @@ function App() {
     setPreco(produto.preco);
   };
 
-  // =========================
-  // ATUALIZAR
-  // =========================
-  const atualizar = () => {
-    fetch(`${API}/produtos/${editandoId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        nome,
-        quantidade: Number(quantidade),
-        preco: Number(preco)
-      })
-    })
-      .then(() => {
-        limpar();
-        carregarProdutos();
-      })
-      .catch(() => alert("Erro ao atualizar"));
-  };
-
-  // =========================
-  // LIMPAR
-  // =========================
   const limpar = () => {
     setNome("");
     setQuantidade("");
@@ -134,12 +144,15 @@ function App() {
     <div className="container">
       <h1>Controle de Estoque</h1>
 
+      {erro && <p style={{ color: "red" }}>{erro}</p>}
+      {loading && <p>Carregando...</p>}
+
       {/* BUSCA */}
       <div style={{ marginBottom: "15px" }}>
         <input
           placeholder="Buscar produto"
           value={busca}
-          onChange={e => setBusca(e.target.value)}
+          onChange={(e) => setBusca(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && buscarProdutos()}
         />
         <button onClick={buscarProdutos}>Buscar</button>
@@ -150,30 +163,24 @@ function App() {
         <input
           placeholder="Nome"
           value={nome}
-          onChange={e => setNome(e.target.value)}
+          onChange={(e) => setNome(e.target.value)}
         />
         <input
           placeholder="Quantidade"
           type="number"
           value={quantidade}
-          onChange={e => setQuantidade(e.target.value)}
+          onChange={(e) => setQuantidade(e.target.value)}
         />
         <input
           placeholder="Preço"
           type="number"
           value={preco}
-          onChange={e => setPreco(e.target.value)}
+          onChange={(e) => setPreco(e.target.value)}
         />
 
-        {editandoId ? (
-          <button className="btn-atualizar" onClick={atualizar}>
-            Atualizar
-          </button>
-        ) : (
-          <button className="btn-salvar" onClick={salvar}>
-            Salvar
-          </button>
-        )}
+        <button onClick={salvarOuAtualizar}>
+          {editandoId ? "Atualizar" : "Salvar"}
+        </button>
 
         <button onClick={limpar}>Cancelar</button>
       </div>
@@ -191,26 +198,15 @@ function App() {
         </thead>
 
         <tbody>
-          {produtos.map(p => (
+          {produtos.map((p) => (
             <tr key={p.id}>
               <td>{p.id}</td>
               <td>{p.nome}</td>
               <td>{p.quantidade}</td>
               <td>R$ {p.preco}</td>
               <td>
-                <button
-                  className="btn-editar"
-                  onClick={() => prepararEdicao(p)}
-                >
-                  Editar
-                </button>
-
-                <button
-                  className="btn-deletar"
-                  onClick={() => deletar(p.id)}
-                >
-                  Excluir
-                </button>
+                <button onClick={() => prepararEdicao(p)}>Editar</button>
+                <button onClick={() => deletar(p.id)}>Excluir</button>
               </td>
             </tr>
           ))}
