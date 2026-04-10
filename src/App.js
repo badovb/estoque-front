@@ -75,13 +75,14 @@ function App() {
 
     try {
       setErro("");
+      setLoading(true);
 
       const metodo = editandoId ? "PUT" : "POST";
       const url = editandoId
         ? `${API}/produtos/${editandoId}`
         : `${API}/produtos`;
 
-      await fetch(url, {
+      const res = await fetch(url, {
         method: metodo,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -91,10 +92,35 @@ function App() {
         })
       });
 
+      if (!res.ok) {
+        let detalhe = "";
+        try {
+          const contentType = res.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
+            const data = await res.json();
+            detalhe =
+              data?.message ||
+              data?.error ||
+              data?.details ||
+              JSON.stringify(data);
+          } else {
+            detalhe = await res.text();
+          }
+        } catch {
+          // ignore parse errors
+        }
+
+        throw new Error(
+          `Falha ao salvar (${res.status})${detalhe ? `: ${detalhe}` : ""}`
+        );
+      }
+
       limpar();
       carregarProdutos();
-    } catch {
-      setErro("Erro ao salvar");
+    } catch (e) {
+      setErro(e?.message || "Erro ao salvar");
+    } finally {
+      setLoading(false);
     }
   };
 
