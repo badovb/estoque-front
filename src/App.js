@@ -59,10 +59,25 @@ function App() {
     setPreco("");
     setEditandoId(null);
   };
+  const [busca, setBusca] = useState("");
+
+  const buscarProdutos = () => {
+  fetch(`${API}/produtos/buscar?nome=${busca}`)
+    .then(res => res.json())
+    .then(data => setProdutos(data));
+};
 
   return (
   <div className="container">
     <h1>Controle de Estoque</h1>
+
+    <input
+  placeholder="Buscar produto"
+  value={busca}
+  onChange={e => setBusca(e.target.value)}
+/>
+
+<button onClick={buscarProdutos}>Buscar</button>
 
     <div className="form">
       <input placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} />
