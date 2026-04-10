@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import Login from "./Login";
 
-const API = "https://controle-estoque-api-esmn.onrender.com";
+const API = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
 function App() {
   const [produtos, setProdutos] = useState([]);
