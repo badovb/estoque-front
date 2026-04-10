@@ -5,7 +5,7 @@ function Login({ onLogin }) {
   const [senha, setSenha] = useState("");
 
   const logar = () => {
-    if (email === "admin@email.com" && senha === "123") {
+    if (email === "admin" && senha === "123") {
       onLogin();
     } else {
       alert("Login inválido");
