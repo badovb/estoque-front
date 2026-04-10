@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
+const API = "https://controle-estoque-api-esmn.onrender.com";
+
 function App() {
   const [produtos, setProdutos] = useState([]);
   const [nome, setNome] = useState("");
   const [quantidade, setQuantidade] = useState("");
   const [preco, setPreco] = useState("");
   const [editandoId, setEditandoId] = useState(null);
+  const [busca, setBusca] = useState("");
 
+  // LISTAR
   const carregarProdutos = () => {
-    fetch("https://controle-estoque-api-esnm.onrender.com/produtos")
+    fetch(`${API}/produtos`)
       .then(res => res.json())
       .then(data => setProdutos(data));
   };
@@ -18,10 +22,20 @@ function App() {
     carregarProdutos();
   }, []);
 
+  // BUSCAR
+  const buscarProdutos = () => {
+    fetch(`${API}/produtos/buscar?nome=${busca}`)
+      .then(res => res.json())
+      .then(data => setProdutos(data));
+  };
+
+  // SALVAR
   const salvar = () => {
-    fetch("https://controle-estoque-api-esnm.onrender.com/produtos", {
+    fetch(`${API}/produtos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({ nome, quantidade, preco })
     }).then(() => {
       limpar();
@@ -29,12 +43,14 @@ function App() {
     });
   };
 
+  // DELETE
   const deletar = (id) => {
-    fetch(`https://controle-estoque-api-esnm.onrender.com/produtos/${id}`, {
+    fetch(`${API}/produtos/${id}`, {
       method: "DELETE"
     }).then(() => carregarProdutos());
   };
 
+  // EDITAR
   const prepararEdicao = (produto) => {
     setEditandoId(produto.id);
     setNome(produto.nome);
@@ -43,9 +59,11 @@ function App() {
   };
 
   const atualizar = () => {
-    fetch(`https://controle-estoque-api-esnm.onrender.com/produtos/${editandoId}`, {
+    fetch(`${API}/produtos/${editandoId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({ nome, quantidade, preco })
     }).then(() => {
       limpar();
@@ -59,13 +77,6 @@ function App() {
     setPreco("");
     setEditandoId(null);
   };
-  const [busca, setBusca] = useState("");
-
-  const buscarProdutos = () => {
-  fetch(`${API}/produtos/buscar?nome=${busca}`)
-    .then(res => res.json())
-    .then(data => setProdutos(data));
-};
 
   return (
   <div className="container">
