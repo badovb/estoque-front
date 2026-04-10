@@ -2,7 +2,18 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import Login from "./Login";
 
-const API = process.env.REACT_APP_API_URL || "http://localhost:8080";
+/** Base da API sem barra final; aceita env com ou sem `/produtos` no fim. */
+function normalizeApiBase(url) {
+  const fallback = "http://localhost:8080";
+  if (!url || typeof url !== "string") return fallback;
+  let u = url.trim().replace(/\/+$/, "");
+  if (u.endsWith("/produtos")) {
+    u = u.slice(0, -"/produtos".length);
+  }
+  return u || fallback;
+}
+
+const API = normalizeApiBase(process.env.REACT_APP_API_URL);
 
 function App() {
   const [produtos, setProdutos] = useState([]);
